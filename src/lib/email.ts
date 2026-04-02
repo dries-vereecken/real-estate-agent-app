@@ -1,10 +1,15 @@
-const GRAPH_SEND_MAIL_URL = "https://graph.microsoft.com/v1.0/me/sendMail";
+const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 
 type SendEmailParams = {
   accessToken: string;
   to: string;
   subject: string;
   html: string;
+  /**
+   * When set, uses /users/{sendAsUserId}/sendMail (app-only token).
+   * When omitted, uses /me/sendMail (delegated token from the session).
+   */
+  sendAsUserId?: string;
 };
 
 export async function sendEmail({
@@ -12,8 +17,13 @@ export async function sendEmail({
   to,
   subject,
   html,
+  sendAsUserId,
 }: SendEmailParams): Promise<void> {
-  const response = await fetch(GRAPH_SEND_MAIL_URL, {
+  const endpoint = sendAsUserId
+    ? `${GRAPH_BASE}/users/${encodeURIComponent(sendAsUserId)}/sendMail`
+    : `${GRAPH_BASE}/me/sendMail`;
+
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
